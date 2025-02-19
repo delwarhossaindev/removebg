@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "9482ea6b-a9dd-4cde-b1a7-e5667533f19e",
+		"name": "Removebg",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14415247",
+		"_collection_link": "https://red-star-957867.postman.co/workspace/My-Workspace~df20d922-dd2c-4428-8d71-049ed4efbaef/collection/14415247-9482ea6b-a9dd-4cde-b1a7-e5667533f19e?action=share&source=collection_link&creator=14415247"
+	},
+	"item": [
+		{
+			"name": "Upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "images[]",
+							"type": "file",
+							"src": [
+								"postman-cloud:///1efe45ef-2227-4d20-abb0-ffeb223ac719",
+								"postman-cloud:///1efe45e7-e565-42e0-a9e6-e5a316f1372e"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "{{SERVER}}api/remove-bg",
+					"host": [
+						"{{SERVER}}api"
+					],
+					"path": [
+						"remove-bg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Zip File",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "images[]",
+							"type": "file",
+							"src": "postman-cloud:///1efe38e0-711c-4140-abdb-aac8460c84a3"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{SERVER}}api/remove-bg-zip",
+					"host": [
+						"{{SERVER}}api"
+					],
+					"path": [
+						"remove-bg-zip"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
