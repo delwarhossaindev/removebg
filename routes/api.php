@@ -60,5 +60,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::post('/remove-bg', [ImageController::class, 'removeBackground']);
-
 Route::post('/remove-bg-zip', [ImageController::class, 'removeBackgroundZip']);
+
+Route::post('/remove-bg-profile', [ImageController::class, 'removeBackgroundProfile']);
+Route::post('/remove-bg-signature', [ImageController::class, 'removeBackgroundSignature']);
+
+

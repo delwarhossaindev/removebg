@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 use App\Services\BackgroundRemoverService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
+
 use ZipArchive;
 
 class ImageController extends Controller
@@ -97,6 +100,150 @@ class ImageController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error'   => 'Failed to process images.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function removeBackgroundProfile(Request $request)
+    {
+        try {
+        
+            $validator = Validator::make($request->all(), [
+                'image_url' => 'required|url',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'error'   => 'Validation failed.',
+                    'message' => $validator->errors(),
+                ], 422);
+            }
+    
+            $imageUrl = $request->input('image_url');
+            $fileName = basename($imageUrl);
+    
+         
+            $response = Http::get($imageUrl);
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to download image.'], 400);
+            }
+    
+            $imageContents = $response->body();
+            if (!$imageContents) {
+                return response()->json(['error' => 'Downloaded image is empty.'], 400);
+            }
+    
+          
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($imageContents);
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    
+            if (!in_array($mimeType, $allowedMimeTypes)) {
+                return response()->json(['error' => 'Invalid image format. Only JPG, PNG, and WebP are allowed.'], 400);
+            }
+    
+         
+            $extension  = explode('/', $mimeType)[1]; 
+            $imageName  = 'downloaded_' . time() . '.' . $extension;
+            $imagePath  = 'temp/' . $imageName;
+    
+            Storage::disk('local')->put($imagePath, $imageContents);
+    
+          
+            $outputFileName =  $fileName;
+            $outputPath     = storage_path('app/profile/' . $outputFileName);
+    
+           
+            $this->backgroundRemover->removeBackgroundProfile(storage_path('app/' . $imagePath), $outputPath, $outputFileName);
+    
+           
+            
+            if (Storage::disk('local')->exists($imagePath)) {
+                Storage::disk('local')->delete($imagePath);
+            }
+
+
+            return response()->json([
+                'image_url' => asset('storage/profile/' . $outputFileName),
+                'file_name' => $outputFileName,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => 'Failed to remove background.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function removeBackgroundSignature(Request $request)
+    {
+        try {
+        
+            $validator = Validator::make($request->all(), [
+                'image_url' => 'required|url',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'error'   => 'Validation failed.',
+                    'message' => $validator->errors(),
+                ], 422);
+            }
+    
+            $imageUrl = $request->input('image_url');
+
+            $fileName = basename($imageUrl);
+
+           
+    
+         
+            $response = Http::get($imageUrl);
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to download image.'], 400);
+            }
+    
+            $imageContents = $response->body();
+            if (!$imageContents) {
+                return response()->json(['error' => 'Downloaded image is empty.'], 400);
+            }
+    
+          
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($imageContents);
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+           
+    
+            if (!in_array($mimeType, $allowedMimeTypes)) {
+                return response()->json(['error' => 'Invalid image format. Only JPG, PNG, and WebP are allowed.'], 400);
+            }
+    
+         
+            $extension  = explode('/', $mimeType)[1]; 
+            $imageName  = 'downloaded_' . time() . '.' . $extension;
+            $imagePath  = 'temp/' . $imageName;
+    
+            Storage::disk('local')->put($imagePath, $imageContents);
+    
+          
+            $outputFileName = $fileName;
+            $outputPath     = storage_path('app/public/signature/' . $outputFileName);
+    
+           
+            $this->backgroundRemover->removeBackgroundSignature(storage_path('app/' . $imagePath), $outputPath, $outputFileName);
+    
+            if (Storage::disk('local')->exists($imagePath)) {
+                Storage::disk('local')->delete($imagePath);
+            }
+           
+            return response()->json([
+                'image_url' => asset('storage/signature/' . $outputFileName),
+                'file_name' => $outputFileName,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => 'Failed to remove background.',
                 'message' => $e->getMessage(),
             ], 500);
         }
